@@ -1,46 +1,30 @@
-import math
+from PIL import Image
+import numpy as np
 
-def triangle(length, symbol):
-    """Prints a triangle of a given size s"""
-    for row in range(1, length + 1):
-        spaces = length - row
-        num = row
-        print(' ' * spaces + (symbol + ' ') * num)
+# Characters arranged from darkest to lightest
+ascii_chars = "@%#*+=-:. "
 
-def diamond(length, symbol):
-    for row in range(1, length + 1):
-        spaces = length - row
-        print(' ' * spaces + (symbol + ' ') * row)
-    
-    for row in range(length - 1, 0, -1):
-        spaces = length - row
-        print(' ' * spaces + (symbol + ' ') * row)
+def image_to_ascii(path, new_width=100):
+    # Load and convert to grayscale
+    img = Image.open(path).convert('L')
 
-def circle(length, symbol):
-    for y in range(-length, length + 1):
-        for x in range(-2 * length, 2 * length + 1):
-            dist = math.sqrt((x / 2) ** 2 + y **2)
-            if abs(dist - length) < 0.5:
-                print(symbol, end=' ')
-            else:
-                print(' ', end=' ')
-        
-        print()
+    # Resize image to new width
+    width, height = img.size
+    aspect_ratio = height / width
+    new_height = int(aspect_ratio * new_width * 0.55)  # adjust for terminal height distortion
+    img = img.resize((new_width, new_height))
 
-def main():
-    symbol = input("Enter a symbol: ")
-    length = int(input("Enter the length of the pattern: "))
-    
-    choice = input("Enter the choice you wish to make of patterns: \n" \
-    "1 for triangle, 2 for diamond, 3 for circle: ")
+    # Convert image to numpy array
+    pixels = np.array(img)
 
-    if choice == '1':
-        triangle(length, symbol)
-    elif choice == '2':
-        diamond(length, symbol)
-    elif choice == '3':
-        circle(length, symbol)
-    else:
-        print("Invalid choice. Please choose a valid option.")
+    # Map each pixel to an ASCII character
+    ascii_img = []
+    for row in pixels:
+        ascii_row = [ascii_chars[pixel * len(ascii_chars) // 256] for pixel in row]
+        ascii_img.append("".join(ascii_row))
 
-main()
+    return "\n".join(ascii_img)
+
+# Run
+ascii_art = image_to_ascii("bird.jpg", new_width=80)
+print(ascii_art)
